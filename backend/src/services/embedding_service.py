@@ -49,6 +49,21 @@ class EmbeddingService:
                     task_type="RETRIEVAL_DOCUMENT", output_dimensionality=dimensions
                 ),
             )
-            results.extend([e.values for e in response.embeddings])
+            if response.embeddings:
+                results.extend([e.values for e in response.embeddings if e.values])
 
         return results
+
+    async def generate_query_embedding(
+        self, text: str, dimensions: int = 2000
+    ) -> list[float]:
+        response = self.client.models.embed_content(
+            model=self.model,
+            contents=[text],
+            config=types.EmbedContentConfig(
+                task_type="RETRIEVAL_QUERY", output_dimensionality=dimensions
+            ),
+        )
+        if not response.embeddings or not response.embeddings[0].values:
+            raise ValueError("Failed to generate embedding")
+        return response.embeddings[0].values

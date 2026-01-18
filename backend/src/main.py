@@ -1,8 +1,9 @@
 from contextlib import asynccontextmanager
 
+import logfire
 from fastapi import FastAPI
 
-from src.api.routes import auth, documents
+from src.api.routes import auth, chat, documents
 from src.core.config import settings
 
 
@@ -10,6 +11,9 @@ from src.core.config import settings
 async def lifespan(app: FastAPI):
     yield
 
+
+logfire.configure(token=settings.LOGFIRE_TOKEN)
+logfire.info("Hello, {place}!", place="Nico")
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -21,6 +25,7 @@ app.include_router(auth.router, prefix=f"{settings.API_V1_STR}/auth", tags=["aut
 app.include_router(
     documents.router, prefix=f"{settings.API_V1_STR}/documents", tags=["documents"]
 )
+app.include_router(chat.router, prefix=f"{settings.API_V1_STR}/chat", tags=["chat"])
 
 
 @app.get("/")

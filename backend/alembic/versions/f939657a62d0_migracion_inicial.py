@@ -30,9 +30,7 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("email", sa.String(), nullable=False),
         sa.Column("hashed_password", sa.String(), nullable=False),
-        sa.Column(
-            "role", sa.Enum("USER", "ADMIN", "BOE", name="userrole"), nullable=False
-        ),
+        sa.Column("role", sa.String(), nullable=False),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -93,8 +91,26 @@ def upgrade() -> None:
         "USING hnsw (embedding vector_cosine_ops) WITH (m = 16, ef_construction = 64)"
     )
 
+    # Create messages table
+    op.create_table(
+        "messages",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("user_id", sa.Integer(), nullable=False),
+        sa.Column("role", sa.String(), nullable=False),
+        sa.Column("content", sa.String(), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=False),
+        sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(op.f("ix_messages_id"), "messages", ["id"], unique=False)
+    op.create_index(op.f("ix_messages_user_id"), "messages", ["user_id"], unique=False)
+
 
 def downgrade() -> None:
+    op.drop_index(op.f("ix_messages_user_id"), table_name="messages")
+    op.drop_index(op.f("ix_messages_id"), table_name="messages")
+    op.drop_table("messages")
+
     op.drop_index("document_chunks_embedding_idx", table_name="document_chunks")
     op.drop_index(op.f("ix_document_chunks_id"), table_name="document_chunks")
     op.drop_index(op.f("ix_document_chunks_document_id"), table_name="document_chunks")
@@ -110,4 +126,5 @@ def downgrade() -> None:
     op.drop_table("users")
 
     op.execute("DROP TYPE userrole")
+    op.execute("DROP TYPE messagerole")
     op.execute("DROP EXTENSION IF EXISTS vector")

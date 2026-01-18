@@ -1,5 +1,6 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.domain.models.document_chunk import DocumentChunk
 
 
@@ -19,6 +20,18 @@ class DocumentChunkRepository:
             select(DocumentChunk)
             .where(DocumentChunk.document_id == document_id)
             .order_by(DocumentChunk.chunk_index)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def search_similar(
+        self, embedding: list[float], limit: int = 5
+    ) -> list[DocumentChunk]:
+        # Using pgvector cosine distance operator <->
+        stmt = (
+            select(DocumentChunk)
+            .order_by(DocumentChunk.embedding.cosine_distance(embedding))
+            .limit(limit)
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())

@@ -3,16 +3,19 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.agents.chat_agent.agent import ChatAgent
 from src.core.config import settings
 from src.core.database import get_db_session
 from src.domain.models.user import User
 from src.domain.schemas.token import TokenData
 from src.repositories.document_chunk_repository import DocumentChunkRepository
 from src.repositories.document_repository import DocumentRepository
+from src.repositories.message_repository import MessageRepository
 from src.repositories.storage_repository import StorageRepository
 from src.repositories.user_repository import UserRepository
 from src.services.auth_service import AuthService
 from src.services.boe_document_service import BoeDocumentService
+from src.services.chat_service import ChatService
 from src.services.document_service import DocumentService
 from src.services.embedding_service import EmbeddingService
 from src.services.storage_service import StorageService
@@ -41,6 +44,12 @@ async def get_document_chunk_repository(
 
 async def get_storage_repository() -> StorageRepository:
     return StorageRepository()
+
+
+async def get_message_repository(
+    session: AsyncSession = Depends(get_db_session),
+) -> MessageRepository:
+    return MessageRepository(session)
 
 
 # Services
@@ -76,6 +85,19 @@ async def get_boe_document_service(
     embedding_service: EmbeddingService = Depends(get_embedding_service),
 ) -> BoeDocumentService:
     return BoeDocumentService(doc_repo, chunk_repo, storage_service, embedding_service)
+
+
+async def get_chat_agent() -> ChatAgent:
+    return ChatAgent()
+
+
+async def get_chat_service(
+    message_repo: MessageRepository = Depends(get_message_repository),
+    chunk_repo: DocumentChunkRepository = Depends(get_document_chunk_repository),
+    embedding_service: EmbeddingService = Depends(get_embedding_service),
+    agent: ChatAgent = Depends(get_chat_agent),
+) -> ChatService:
+    return ChatService(message_repo, chunk_repo, embedding_service, agent)
 
 
 # Current User

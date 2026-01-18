@@ -34,6 +34,7 @@ class Settings(BaseSettings):
 
     # AI / RAG
     GOOGLE_API_KEY: Optional[str] = None
+    LOGFIRE_TOKEN: Optional[str] = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
