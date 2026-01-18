@@ -1,0 +1,14 @@
+# Python-generated files
+__pycache__/
+test.ipynb
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+.env
+.vscode
+.vercel

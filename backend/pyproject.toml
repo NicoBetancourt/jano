@@ -1,0 +1,30 @@
+[project]
+name = "chat-migracion"
+version = "0.1.0"
+description = "Chat bot"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "langgraph>=0.2.64",
+    "openai>=1.59.8",
+    "python-dotenv>=1.0.1",
+    "ipykernel>=6.29.5",
+    "pymongo>=4.11.1",
+    "pypdf>=5.3.0",
+    "fastapi[standard]>=0.115.8",
+    "pymupdf>=1.25.3",
+    "sqlalchemy>=2.0.38",
+    "alembic>=1.17.2",
+    "pydantic-settings>=2.7.1",
+    "asyncpg>=0.31.0",
+    "aiosqlite>=0.22.1",
+    "aioboto3>=15.5.0",
+    "python-multipart>=0.0.20",
+    "passlib[bcrypt]>=1.7.4",
+    "python-jose[cryptography]>=3.5.0",
+    "greenlet>=3.1.1",
+    "bcrypt==3.2.2",
+    "pydantic-ai>=0.0.29",
+    "google-genai>=1.57.0",
+    "pgvector>=0.3.7",
+]
