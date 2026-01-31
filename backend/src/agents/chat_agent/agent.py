@@ -1,7 +1,6 @@
 from pydantic_ai import Agent, RunContext
 from pydantic_ai.models.google import GoogleModel
 from pydantic_ai.providers.google import GoogleProvider
-
 from src.core.config import settings
 
 from .deps import ChatDeps
@@ -13,7 +12,7 @@ class ChatAgent:
     def __init__(self):
         self.provider = GoogleProvider(api_key=settings.GOOGLE_API_KEY)
         self.agent = Agent(
-            GoogleModel(provider=self.provider, model_name="gemini-3-flash-preview"),
+            GoogleModel(provider=self.provider, model_name=settings.MODEL_NAME),
             deps_type=ChatDeps,
         )
         self.agent.tool(retrieve_documents)

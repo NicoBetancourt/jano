@@ -22,9 +22,9 @@ class ChatService:
         self.embedding_service = embedding_service
         self.agent = agent
 
-    async def get_chat_response(self, user: User, content: str) -> str:
-        # 1. Get history from DB
-        history = await self.message_repo.get_by_user(user.id)
+    async def get_chat_response(self, user: User, content: str, session_id: str) -> str:
+        # 1. Get history from DB for this session
+        history = await self.message_repo.get_by_session(user.id, session_id)
 
         # 2. Convert to Pydantic AI message history format
         # Note: This is a simplified conversion. Pydantic AI expects specific types.
@@ -47,13 +47,21 @@ class ChatService:
         # 4. Run Agent
         result = await self.agent.run(content, deps=deps, message_history=ai_history)
 
-        # 5. Save messages to DB
-        user_msg = Message(user_id=user.id, role=MessageRole.USER, content=content)
+        # 5. Save messages to DB with session_id
+        user_msg = Message(
+            user_id=user.id,
+            role=MessageRole.USER,
+            content=content,
+            session_id=session_id,
+        )
         model_msg = Message(
-            user_id=user.id, role=MessageRole.MODEL, content=result.response
+            user_id=user.id,
+            role=MessageRole.MODEL,
+            content=result.output,
+            session_id=session_id,
         )
 
         await self.message_repo.create(user_msg)
         await self.message_repo.create(model_msg)
 
-        return str(result.response)
+        return str(result.output)

@@ -1,5 +1,6 @@
 from typing import Optional
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,8 +9,6 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api"
 
     # DATABASE
-    # PostgreSQL with asyncpg driver
-    # Format: postgresql+asyncpg://user:password@host:port/database
     DATABASE_URL: str = (
         "postgresql+asyncpg://postgres:postgres@localhost:5432/chat_migracion"
     )
@@ -20,12 +19,11 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
 
     # STORAGE (S3/MinIO)
-    ENVIRONMENT: str = "dev"  # dev or prod
+    ENVIRONMENT: str = "dev"
     AWS_ACCESS_KEY_ID: str = "minioadmin"
     AWS_SECRET_ACCESS_KEY: str = "minioadmin"
     AWS_REGION: str = "us-east-1"
     S3_BUCKET_NAME: str = "documents"
-    # For local MinIO: http://localhost:9000
     AWS_ENDPOINT_URL: Optional[str] = "http://localhost:9000"
 
     # FOLDERS
@@ -33,7 +31,8 @@ class Settings(BaseSettings):
     S3_BOE_FOLDER: str = "boe"
 
     # AI / RAG
-    GOOGLE_API_KEY: Optional[str] = None
+    MODEL_NAME: str = "gemini-3-flash-preview"
+    GOOGLE_API_KEY: str = Field(default=...)
     LOGFIRE_TOKEN: Optional[str] = None
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

@@ -36,7 +36,7 @@ This is a **FastAPI** based backend for managing documents. It supports uploadin
 1.  **Clone the repository**:
     ```bash
     git clone <repo-url>
-    cd chat-migracion/backend
+    cd jano/backend
     ```
 
 2.  **Install Dependencies**:

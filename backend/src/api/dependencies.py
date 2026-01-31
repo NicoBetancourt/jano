@@ -19,6 +19,7 @@ from src.services.chat_service import ChatService
 from src.services.document_service import DocumentService
 from src.services.embedding_service import EmbeddingService
 from src.services.storage_service import StorageService
+from src.services.user_service import UserService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl=f"{settings.API_V1_STR}/auth/login")
 
@@ -57,6 +58,12 @@ async def get_auth_service(
     user_repo: UserRepository = Depends(get_user_repository),
 ) -> AuthService:
     return AuthService(user_repo)
+
+
+async def get_user_service(
+    user_repo: UserRepository = Depends(get_user_repository),
+) -> UserService:
+    return UserService(user_repo)
 
 
 async def get_storage_service(
