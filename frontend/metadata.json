@@ -1,0 +1,7 @@
+{
+  "name": "Jano",
+  "description": "A document-based AI chat workspace featuring a clean teal interface, source management, and Gemini-powered chat with citation-style UI.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
