@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Share, Mic, Send, Paperclip, Sparkles, Copy, RefreshCw, ThumbsUp, User } from 'lucide-react';
+import { Search, Share, Mic, Send, Paperclip, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -228,26 +228,13 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
                     </div>
                   )}
 
-                  {/* Action Buttons (AI Only) */}
-                  {msg.role === MessageRole.Model && (
-                    <div className="flex items-center gap-4 mt-3 pl-1">
-                      <button className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-wider">
-                        <Copy className="w-3.5 h-3.5" /> Copy
-                      </button>
-                      <button className="flex items-center gap-1.5 text-xs font-medium text-gray-400 hover:text-gray-600 transition-colors uppercase tracking-wider">
-                        <RefreshCw className="w-3.5 h-3.5" /> Regenerate
-                      </button>
-                      <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                        <ThumbsUp className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
+
                 </div>
 
                 {/* User Avatar */}
                 {msg.role === MessageRole.User && (
-                  <div className="w-8 h-8 bg-gray-200 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                    <User className="w-4 h-4 text-gray-500" />
+                  <div className="w-8 h-8 rounded-lg bg-teal-500 flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 mt-1">
+                    {userEmail ? userEmail.charAt(0).toUpperCase() : 'U'}
                   </div>
                 )}
               </div>

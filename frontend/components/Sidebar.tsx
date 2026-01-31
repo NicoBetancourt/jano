@@ -11,16 +11,18 @@ import { chatService } from '../services/chat';
 interface SidebarProps {
   sources: SourceDocument[];
   onUpload?: (doc: SourceDocument) => void;
+  onDeleteSource?: (sourceId: string) => void;
   currentSessionId: string | null;
   onSessionSelect?: (sessionId: string) => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, currentSessionId, onSessionSelect }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSource, currentSessionId, onSessionSelect }) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [showConversations, setShowConversations] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [sessionToDelete, setSessionToDelete] = useState<string | null>(null);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -57,21 +59,39 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, currentSess
   const handleDeleteSession = (e: React.MouseEvent, sessionId: string) => {
     e.stopPropagation(); // Prevent session selection
     setSessionToDelete(sessionId);
+    setDocumentToDelete(null); // Ensure documentToDelete is clear
+    setDeleteModalOpen(true);
+  };
+
+  const handleDeleteDocument = (docId: string) => {
+    setDocumentToDelete(docId);
+    setSessionToDelete(null); // Ensure sessionToDelete is clear
     setDeleteModalOpen(true);
   };
 
   const confirmDelete = async () => {
-    if (!sessionToDelete) return;
-    try {
-      await chatService.deleteSession(sessionToDelete);
-      setSessions(prev => prev.filter(s => s.id !== sessionToDelete));
-      // If the deleted session was the current one, we might want to clear it
-      if (currentSessionId === sessionToDelete && onSessionSelect) {
-        onSessionSelect(""); // Or some way to indicate reset
+    if (sessionToDelete) {
+      try {
+        await chatService.deleteSession(sessionToDelete);
+        setSessions(prev => prev.filter(s => s.id !== sessionToDelete));
+        // If the deleted session was the current one, we might want to clear it
+        if (currentSessionId === sessionToDelete && onSessionSelect) {
+          onSessionSelect(""); // Or some way to indicate reset
+        }
+      } catch (error) {
+        console.error('Failed to delete session:', error);
       }
-    } catch (error) {
-      console.error('Failed to delete session:', error);
+    } else if (documentToDelete && onDeleteSource) {
+      try {
+        await documentService.deleteDocument(documentToDelete);
+        onDeleteSource(documentToDelete);
+      } catch (error) {
+        console.error('Failed to delete document:', error);
+      }
     }
+    setDeleteModalOpen(false);
+    setSessionToDelete(null);
+    setDocumentToDelete(null);
   };
 
   return (
@@ -129,7 +149,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, currentSess
 
             <div className="space-y-1">
               {sources.map(source => (
-                <SourceCard key={source.id} source={source} />
+                <SourceCard
+                  key={source.id}
+                  source={source}
+                  onDelete={handleDeleteDocument}
+                />
               ))}
             </div>
           </>
@@ -203,8 +227,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, currentSess
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title="Delete Conversation"
-        message="Are you sure you want to delete this conversation? This action cannot be undone."
+        title={sessionToDelete ? "Delete Conversation" : "Delete Document"}
+        message={sessionToDelete
+          ? "Are you sure you want to delete this conversation? This action cannot be undone."
+          : "Are you sure you want to delete this document? This action cannot be undone."
+        }
       />
     </div>
   );

@@ -76,6 +76,10 @@ export default function App() {
     setSources(prev => [...prev, doc]);
   };
 
+  const handleDeleteSource = (sourceId: string) => {
+    setSources(prev => prev.filter(doc => doc.id !== sourceId));
+  };
+
   const handleNewChat = () => {
     setCurrentSessionId(null);
     setMessages([]);
@@ -112,6 +116,7 @@ export default function App() {
       <Sidebar
         sources={sources}
         onUpload={handleDocumentUploaded}
+        onDeleteSource={handleDeleteSource}
         currentSessionId={currentSessionId}
         onSessionSelect={handleSessionSelect}
       />

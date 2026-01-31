@@ -48,5 +48,15 @@ export const documentService = {
         });
         const doc: DocumentResponse = await handleResponse(response);
         return mapDocument(doc);
+    },
+
+    deleteDocument: async (id: string): Promise<void> => {
+        const response = await fetch(`${API_BASE_URL}/documents/${id}`, {
+            method: 'DELETE',
+            headers: {
+                ...getAuthHeaders(),
+            },
+        });
+        await handleResponse(response);
     }
 };
