@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertTriangle, X } from 'lucide-react';
 import { Button } from './Button';
+import { useTranslation } from 'react-i18next';
 
 interface ConfirmationModalProps {
     isOpen: boolean;
@@ -17,6 +18,8 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     title,
     message,
 }) => {
+    const { t } = useTranslation();
+
     if (!isOpen) return null;
 
     return (
@@ -54,7 +57,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                         onClick={onClose}
                         className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-gray-600"
                     >
-                        Cancel
+                        {t('common.cancel')}
                     </Button>
                     <Button
                         onClick={() => {
@@ -63,7 +66,7 @@ export const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
                         }}
                         className="bg-red-500 hover:bg-red-600 text-white shadow-sm border-transparent focus:ring-red-500"
                     >
-                        Delete Chat
+                        {t('common.delete')}
                     </Button>
                 </div>
             </div>

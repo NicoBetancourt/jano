@@ -1,0 +1,61 @@
+{
+    "common": {
+        "help": "Ayuda",
+        "cancel": "Cancelar",
+        "confirm": "Confirmar",
+        "delete": "Eliminar",
+        "back": "Volver",
+        "close": "Cerrar"
+    },
+    "auth": {
+        "welcomeBack": "Bienvenido de nuevo",
+        "signInWorkspace": "Inicia sesión en tu espacio de trabajo inteligente.",
+        "emailAddress": "Correo Electrónico",
+        "password": "Contraseña",
+        "forgotPassword": "¿Olvidaste tu contraseña?",
+        "rememberMe": "Recordarme",
+        "signIn": "Iniciar Sesión",
+        "signingIn": "Iniciando Sesión...",
+        "noAccount": "¿No tienes una cuenta?",
+        "createAccount": "Crear cuenta",
+        "termsOfService": "Términos de Servicio",
+        "privacyPolicy": "Política de Privacidad",
+        "byContinuing": "Al continuar, aceptas nuestros",
+        "and": "y"
+    },
+    "sidebar": {
+        "appName": "Jano",
+        "appSubtitle": "CHAT DE DOCUMENTOS",
+        "addSource": "Agregar Documento",
+        "clickToUpload": "Haz clic para subir archivos",
+        "sources": "Documentos",
+        "conversations": "Conversaciones",
+        "pastConversations": "Conversaciones Anteriores",
+        "showSources": "Mostrar Documentos",
+        "settings": "Configuración",
+        "untitledConversation": "Conversación sin título",
+        "noConversations": "No hay conversaciones aún",
+        "deleteConversation": "Eliminar Conversación",
+        "deleteDocument": "Eliminar Documento",
+        "deleteConversationConfirm": "¿Estás seguro de que deseas eliminar esta conversación? Esta acción no se puede deshacer.",
+        "deleteDocumentConfirm": "¿Estás seguro de que deseas eliminar este documento? Esta acción no se puede deshacer."
+    },
+    "chat": {
+        "chatSession": "Sesión de Chat",
+        "newChatSession": "Nueva Sesión de Chat",
+        "newChat": "+ Nuevo Chat",
+        "activeLLM": "LLM ACTIVO: GEMINI 3 FLASH",
+        "welcomeWorkspace": "Bienvenido a tu Espacio de Trabajo",
+        "welcomeMessage": "He analizado tus documentos. Pregúntame cualquier cosa sobre las proyecciones de mercado o notas del proyecto para comenzar.",
+        "askAboutDocuments": "Pregunta sobre tus documentos...",
+        "sendShortcut": "⌘ + ENTER PARA ENVIAR"
+    },
+    "settings": {
+        "theme": "Tema",
+        "light": "Claro",
+        "dark": "Oscuro",
+        "language": "Idioma",
+        "lightMode": "Modo Claro",
+        "darkMode": "Modo Oscuro"
+    }
+}

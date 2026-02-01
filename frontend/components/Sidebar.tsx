@@ -8,6 +8,7 @@ import { SourceCard } from './SourceCard';
 import { documentService } from '../services/documents';
 import { chatService } from '../services/chat';
 import { SettingsMenu } from './SettingsMenu';
+import { useTranslation } from 'react-i18next';
 
 interface SidebarProps {
   sources: SourceDocument[];
@@ -18,6 +19,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSource, currentSessionId, onSessionSelect }) => {
+  const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [showConversations, setShowConversations] = useState(false);
@@ -107,8 +109,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
               <JanusLogo className="text-teal-600 dark:text-teal-400" size={24} />
             </div>
             <div>
-              <h1 className="font-semibold text-gray-900 dark:text-white leading-tight transition-colors">Jano</h1>
-              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wide transition-colors">DOCUMENT CHAT</span>
+              <h1 className="font-semibold text-gray-900 dark:text-white leading-tight transition-colors">{t('sidebar.appName')}</h1>
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400 tracking-wide transition-colors">{t('sidebar.appSubtitle')}</span>
             </div>
           </div>
         </div>
@@ -117,7 +119,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
         <div className="p-4 space-y-4 border-b border-gray-100 dark:border-gray-800 transition-colors">
           <Button fullWidth className="rounded-full shadow-sm dark:bg-teal-600 dark:text-white dark:hover:bg-teal-700 transition-colors" onClick={() => fileInputRef.current?.click()}>
             <Plus className="w-5 h-5 mr-2" />
-            Add Source
+            {t('sidebar.addSource')}
           </Button>
 
           <div
@@ -127,7 +129,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
             <div className="mx-auto w-8 h-8 bg-white dark:bg-gray-800 rounded-md shadow-sm flex items-center justify-center mb-2 transition-colors">
               <span className="text-teal-600 dark:text-teal-400 text-lg font-bold">↑</span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors">Click to upload files</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 transition-colors">{t('sidebar.clickToUpload')}</p>
             <input
               type="file"
               ref={fileInputRef}
@@ -143,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
         {!showConversations ? (
           <>
             <div className="flex items-center justify-between mb-3 mt-2">
-              <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider transition-colors">Sources ({sources.length})</h3>
+              <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider transition-colors">{t('sidebar.sources')} ({sources.length})</h3>
               <Filter className="w-4 h-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-pointer transition-colors" />
             </div>
 
@@ -160,12 +162,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
         ) : (
           <>
             <div className="flex items-center justify-between mb-3 mt-2">
-              <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider transition-colors">Conversations ({sessions.length})</h3>
+              <h3 className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider transition-colors">{t('sidebar.conversations')} ({sessions.length})</h3>
               <button
                 onClick={() => setShowConversations(false)}
                 className="text-xs text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 font-medium transition-colors"
               >
-                Back
+                {t('common.back')}
               </button>
             </div>
 
@@ -183,7 +185,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
                     <MessageSquare className={`w-4 h-4 mt-0.5 flex-shrink-0 transition-colors ${currentSessionId === session.id ? 'text-teal-600 dark:text-teal-400' : 'text-gray-400 dark:text-gray-500'}`} />
                     <div className="flex-1 min-w-0">
                       <p className={`text-sm line-clamp-2 mb-1 transition-colors ${currentSessionId === session.id ? 'text-gray-900 dark:text-white font-medium' : 'text-gray-700 dark:text-gray-300'}`}>
-                        {session.title || 'Untitled conversation'}
+                        {session.title || t('sidebar.untitledConversation')}
                       </p>
                       <p className="text-xs text-gray-500 dark:text-gray-500 transition-colors">
                         {new Date(session.timestamp).toLocaleDateString()}
@@ -201,7 +203,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
               ))}
               {sessions.length === 0 && (
                 <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4 transition-colors">
-                  No conversations yet
+                  {t('sidebar.noConversations')}
                 </p>
               )}
             </div>
@@ -216,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
           className="flex items-center gap-3 w-full p-2 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200 rounded-lg text-sm font-medium transition-colors"
         >
           <History className="w-5 h-5" />
-          {showConversations ? 'Show Sources' : 'Past Conversations'}
+          {showConversations ? t('sidebar.showSources') : t('sidebar.pastConversations')}
         </button>
         <button
           ref={settingsButtonRef}
@@ -227,7 +229,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
             }`}
         >
           <Settings className="w-5 h-5" />
-          Settings
+          {t('sidebar.settings')}
         </button>
       </div>
       <SettingsMenu
@@ -239,10 +241,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
         isOpen={deleteModalOpen}
         onClose={() => setDeleteModalOpen(false)}
         onConfirm={confirmDelete}
-        title={sessionToDelete ? "Delete Conversation" : "Delete Document"}
+        title={sessionToDelete ? t('sidebar.deleteConversation') : t('sidebar.deleteDocument')}
         message={sessionToDelete
-          ? "Are you sure you want to delete this conversation? This action cannot be undone."
-          : "Are you sure you want to delete this document? This action cannot be undone."
+          ? t('sidebar.deleteConversationConfirm')
+          : t('sidebar.deleteDocumentConfirm')
         }
       />
     </div>

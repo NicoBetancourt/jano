@@ -1,0 +1,61 @@
+{
+    "common": {
+        "help": "Help",
+        "cancel": "Cancel",
+        "confirm": "Confirm",
+        "delete": "Delete",
+        "back": "Back",
+        "close": "Close"
+    },
+    "auth": {
+        "welcomeBack": "Welcome back",
+        "signInWorkspace": "Sign in to your intelligent workspace.",
+        "emailAddress": "Email Address",
+        "password": "Password",
+        "forgotPassword": "Forgot password?",
+        "rememberMe": "Remember me",
+        "signIn": "Sign In",
+        "signingIn": "Signing In...",
+        "noAccount": "Don't have an account?",
+        "createAccount": "Create account",
+        "termsOfService": "Terms of Service",
+        "privacyPolicy": "Privacy Policy",
+        "byContinuing": "By continuing, you agree to our",
+        "and": "and"
+    },
+    "sidebar": {
+        "appName": "Jano",
+        "appSubtitle": "DOCUMENT CHAT",
+        "addSource": "Add Source",
+        "clickToUpload": "Click to upload files",
+        "sources": "Sources",
+        "conversations": "Conversations",
+        "pastConversations": "Past Conversations",
+        "showSources": "Show Sources",
+        "settings": "Settings",
+        "untitledConversation": "Untitled conversation",
+        "noConversations": "No conversations yet",
+        "deleteConversation": "Delete Conversation",
+        "deleteDocument": "Delete Document",
+        "deleteConversationConfirm": "Are you sure you want to delete this conversation? This action cannot be undone.",
+        "deleteDocumentConfirm": "Are you sure you want to delete this document? This action cannot be undone."
+    },
+    "chat": {
+        "chatSession": "Chat Session",
+        "newChatSession": "New Chat Session",
+        "newChat": "+ New Chat",
+        "activeLLM": "ACTIVE LLM: GEMINI 3 FLASH",
+        "welcomeWorkspace": "Welcome to your Workspace",
+        "welcomeMessage": "I've analyzed your sources. Ask me anything about the market projections or project notes to get started.",
+        "askAboutDocuments": "Ask about your documents...",
+        "sendShortcut": "⌘ + ENTER TO SEND"
+    },
+    "settings": {
+        "theme": "Theme",
+        "light": "Light",
+        "dark": "Dark",
+        "language": "Language",
+        "lightMode": "Light Mode",
+        "darkMode": "Dark Mode"
+    }
+}

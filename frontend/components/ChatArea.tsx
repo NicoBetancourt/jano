@@ -9,6 +9,7 @@ import { chatService } from '../services/chat';
 import { Button } from './Button';
 import { documentService } from '../services/documents';
 import { SourceDocument } from '../types';
+import { useTranslation } from 'react-i18next';
 
 interface ChatAreaProps {
   initialMessages: Message[];
@@ -20,6 +21,7 @@ interface ChatAreaProps {
 }
 
 export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, onSessionChange, onNewChat, userEmail, onUpload }) => {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -125,15 +127,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
       {/* Top Bar */}
       <header className="sticky top-0 z-10 h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-gray-900 transition-colors">
         <div className="flex items-center gap-3">
-          <h2 className="font-semibold text-gray-800 dark:text-gray-100 transition-colors">{sessionId ? 'Chat Session' : 'New Chat Session'}</h2>
+          <h2 className="font-semibold text-gray-800 dark:text-gray-100 transition-colors">{sessionId ? t('chat.chatSession') : t('chat.newChatSession')}</h2>
           <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold tracking-wider rounded-md transition-colors">
-            ACTIVE LLM: GEMINI 3 FLASH
+            {t('chat.activeLLM')}
           </span>
           <button
             onClick={onNewChat}
             className="ml-2 px-3 py-1 text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-md transition-colors"
           >
-            + New Chat
+            {t('chat.newChat')}
           </button>
         </div>
         <div className="flex items-center gap-4">
@@ -157,8 +159,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
             <div className="w-16 h-16 bg-teal-50 dark:bg-teal-900/30 rounded-2xl flex items-center justify-center mb-6 transition-colors">
               <Sparkles className="w-8 h-8 text-teal-600 dark:text-teal-400" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors">Welcome to your Workspace</h2>
-            <p className="text-gray-500 dark:text-gray-400 transition-colors">I've analyzed your sources. Ask me anything about the market projections or project notes to get started.</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors">{t('chat.welcomeWorkspace')}</h2>
+            <p className="text-gray-500 dark:text-gray-400 transition-colors">{t('chat.welcomeMessage')}</p>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto space-y-8">
@@ -297,7 +299,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
             <input
               type="text"
               className="flex-1 py-2.5 px-3 outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400 bg-transparent text-base transition-colors"
-              placeholder="Ask about your documents..."
+              placeholder={t('chat.askAboutDocuments')}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -320,7 +322,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
             </div>
           </div>
           <div className="text-center mt-2 text-[10px] text-gray-400 font-medium tracking-wide">
-            ⌘ + ENTER TO SEND &nbsp;
+            {t('chat.sendShortcut')}
           </div>
         </div>
       </div>
