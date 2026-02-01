@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from 'react';
-import { Sun, Moon, Globe, ChevronRight, Check } from 'lucide-react';
+import { Sun, Moon, Globe, ChevronRight, Check, LogOut } from 'lucide-react';
 import { useTheme } from './ThemeContext';
 import { useTranslation } from 'react-i18next';
 
@@ -7,9 +7,10 @@ interface SettingsMenuProps {
     isOpen: boolean;
     onClose: () => void;
     anchorRef: React.RefObject<HTMLButtonElement>;
+    onLogout: () => void;
 }
 
-export const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, anchorRef }) => {
+export const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, anchorRef, onLogout }) => {
     const { theme, setTheme } = useTheme();
     const { t, i18n } = useTranslation();
     const menuRef = useRef<HTMLDivElement>(null);
@@ -139,10 +140,24 @@ export const SettingsMenu: React.FC<SettingsMenuProps> = ({ isOpen, onClose, anc
                     )}
                 </div>
 
+                {/* Logout Option */}
+                <div className="mt-2 border-t border-gray-100 dark:border-gray-800 pt-2">
+                    <button
+                        onClick={() => {
+                            onLogout();
+                            onClose();
+                        }}
+                        className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        <span>{t('settings.logout')}</span>
+                    </button>
+                </div>
+
             </div>
             <div className="mt-2 border-t border-gray-100 dark:border-gray-800 pt-2 px-3 pb-2 text-[10px] text-gray-400 dark:text-gray-600 text-center">
                 Jano v0.1.0
             </div>
-        </div>
+        </div >
     );
 };

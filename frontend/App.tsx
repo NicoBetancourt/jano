@@ -81,6 +81,22 @@ export default function App() {
     setSources(prev => prev.filter(doc => doc.id !== sourceId));
   };
 
+  const handleLogout = () => {
+    authService.logout();
+    setSources([]);
+    setCurrentSessionId(null);
+    setMessages([]);
+    setCurrentUser(null);
+    localStorage.removeItem('currentSessionId');
+    setCurrentScreen(AppScreen.Login);
+  };
+
+  const handleLogin = async () => {
+    // Load user info first before switching screens
+    await loadCurrentUser();
+    setCurrentScreen(AppScreen.Workspace);
+  };
+
   const handleNewChat = () => {
     setCurrentSessionId(null);
     setMessages([]);
@@ -111,7 +127,7 @@ export default function App() {
   return (
     <ThemeProvider>
       {currentScreen === AppScreen.Login ? (
-        <LoginScreen onLogin={() => setCurrentScreen(AppScreen.Workspace)} />
+        <LoginScreen onLogin={handleLogin} />
       ) : (
         <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden font-sans transition-colors duration-200">
           <Sidebar
@@ -120,6 +136,7 @@ export default function App() {
             onDeleteSource={handleDeleteSource}
             currentSessionId={currentSessionId}
             onSessionSelect={handleSessionSelect}
+            onLogout={handleLogout}
           />
           <ChatArea
             initialMessages={messages}
@@ -128,6 +145,7 @@ export default function App() {
             onNewChat={handleNewChat}
             userEmail={currentUser?.email || ''}
             onUpload={handleDocumentUploaded}
+            onLogout={handleLogout}
           />
         </div>
       )}

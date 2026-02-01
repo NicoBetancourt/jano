@@ -16,9 +16,10 @@ interface SidebarProps {
   onDeleteSource?: (sourceId: string) => void;
   currentSessionId: string | null;
   onSessionSelect?: (sessionId: string) => void;
+  onLogout: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSource, currentSessionId, onSessionSelect }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSource, currentSessionId, onSessionSelect, onLogout }) => {
   const { t } = useTranslation();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -236,6 +237,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ sources, onUpload, onDeleteSou
         isOpen={settingsOpen}
         onClose={() => setSettingsOpen(false)}
         anchorRef={settingsButtonRef}
+        onLogout={onLogout}
       />
       <ConfirmationModal
         isOpen={deleteModalOpen}

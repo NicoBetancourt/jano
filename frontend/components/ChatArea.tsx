@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, Share, Mic, Send, Paperclip, Sparkles } from 'lucide-react';
+import { Search, LogOut, Mic, Send, Paperclip, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
@@ -18,9 +18,10 @@ interface ChatAreaProps {
   onNewChat: () => void;
   userEmail: string;
   onUpload?: (doc: SourceDocument) => void;
+  onLogout: () => void;
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, onSessionChange, onNewChat, userEmail, onUpload }) => {
+export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, onSessionChange, onNewChat, userEmail, onUpload, onLogout }) => {
   const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
@@ -139,9 +140,15 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
           </button>
         </div>
         <div className="flex items-center gap-4">
-          <Search className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
-          <Share className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
-          <div className="h-4 w-px bg-gray-200"></div>
+          <Search className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 transition-colors" />
+          <button
+            onClick={onLogout}
+            className="p-1 rounded-md hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors group"
+            title={t('settings.logout')}
+          >
+            <LogOut className="w-5 h-5 text-gray-400 group-hover:text-red-500 dark:text-gray-500 dark:group-hover:text-red-400 transition-colors" />
+          </button>
+          <div className="h-4 w-px bg-gray-200 dark:bg-gray-700"></div>
           <div className="text-right hidden sm:block">
             <div className="text-sm font-medium text-gray-900 dark:text-gray-100 transition-colors">{userEmail || 'User'}</div>
             <div className="text-xs text-gray-400"></div>
