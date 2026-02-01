@@ -21,7 +21,13 @@
         "termsOfService": "Términos de Servicio",
         "privacyPolicy": "Política de Privacidad",
         "byContinuing": "Al continuar, aceptas nuestros",
-        "and": "y"
+        "and": "y",
+        "confirmPassword": "Confirmar contraseña",
+        "passwordsDoNotMatch": "Las contraseñas no coinciden",
+        "accountCreated": "Cuenta creada con éxito. Ahora puedes iniciar sesión.",
+        "registrationFailed": "Error al registrarse",
+        "loginFailed": "Error al iniciar sesión",
+        "creatingAccount": "Creando cuenta..."
     },
     "sidebar": {
         "appName": "Jano",

@@ -34,6 +34,18 @@ export const authService = {
         return data;
     },
 
+    register: async (email: string, password: string): Promise<UserInfo> => {
+        const response = await fetch(`${API_BASE_URL}/auth/register`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ email, password }),
+        });
+
+        return await handleResponse(response);
+    },
+
     getCurrentUser: async (): Promise<UserInfo> => {
         const response = await fetch(`${API_BASE_URL}/auth/me`, {
             method: 'GET',

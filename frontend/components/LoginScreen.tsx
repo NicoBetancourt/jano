@@ -12,8 +12,11 @@ interface LoginScreenProps {
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
 
@@ -21,11 +24,24 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
     e.preventDefault();
     setIsLoading(true);
     setError(null);
+    setSuccess(null);
+
     try {
-      await authService.login(email, password);
-      onLogin();
+      if (isRegistering) {
+        if (password !== confirmPassword) {
+          throw new Error(t('auth.passwordsDoNotMatch'));
+        }
+        await authService.register(email, password);
+        setSuccess(t('auth.accountCreated'));
+        setIsRegistering(false);
+        setPassword('');
+        setConfirmPassword('');
+      } else {
+        await authService.login(email, password);
+        onLogin();
+      }
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || (isRegistering ? t('auth.registrationFailed') : t('auth.loginFailed')));
     } finally {
       setIsLoading(false);
     }
@@ -64,6 +80,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                   {error}
                 </div>
               )}
+              {success && (
+                <div className="p-3 bg-green-50 text-green-600 text-sm rounded-lg">
+                  {success}
+                </div>
+              )}
               <div className="space-y-2">
                 <label className="text-sm font-semibold text-gray-900 dark:text-gray-200 ml-1 transition-colors">{t('auth.emailAddress')}</label>
                 <input
@@ -79,7 +100,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
               <div className="space-y-2">
                 <div className="flex justify-between items-center ml-1">
                   <label className="text-sm font-semibold text-gray-900 dark:text-gray-200 transition-colors">{t('auth.password')}</label>
-                  <a href="#" className="text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors">{t('auth.forgotPassword')}</a>
+                  {!isRegistering && <a href="#" className="text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 transition-colors">{t('auth.forgotPassword')}</a>}
                 </div>
                 <input
                   type="password"
@@ -90,10 +111,25 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 />
               </div>
 
-              <div className="flex items-center ml-1">
-                <input id="remember" type="checkbox" className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600" />
-                <label htmlFor="remember" className="ml-2 text-sm text-gray-600 dark:text-gray-400 transition-colors">{t('auth.rememberMe')}</label>
-              </div>
+              {isRegistering && (
+                <div className="space-y-2">
+                  <label className="text-sm font-semibold text-gray-900 dark:text-gray-200 ml-1 transition-colors">{t('auth.confirmPassword')}</label>
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-gray-700 focus:border-teal-500 focus:ring-4 focus:ring-teal-500/10 outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-500 text-gray-900 dark:text-white bg-white dark:bg-gray-900"
+                    required
+                  />
+                </div>
+              )}
+
+              {!isRegistering && (
+                <div className="flex items-center ml-1">
+                  <input id="remember" type="checkbox" className="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600" />
+                  <label htmlFor="remember" className="ml-2 text-sm text-gray-600 dark:text-gray-400 transition-colors">{t('auth.rememberMe')}</label>
+                </div>
+              )}
 
               <Button
                 type="submit"
@@ -101,13 +137,28 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
                 disabled={isLoading}
                 className="bg-teal-700 hover:bg-teal-800 text-white font-semibold py-3.5 rounded-xl shadow-lg shadow-teal-700/20 transform active:scale-[0.98] transition-all disabled:opacity-70 disabled:cursor-not-allowed"
               >
-                {isLoading ? t('auth.signingIn') : t('auth.signIn')}
+                {isLoading ? (isRegistering ? t('auth.creatingAccount') : t('auth.signingIn')) : (isRegistering ? t('auth.createAccount') : t('auth.signIn'))}
               </Button>
             </form>
 
             <div className="mt-8 text-center">
-              <span className="text-gray-400 text-sm">{t('auth.noAccount')} </span>
-              <a href="#" className="text-teal-700 dark:text-teal-400 font-semibold text-sm hover:underline transition-colors">{t('auth.createAccount')}</a>
+              <span className="text-gray-400 text-sm text-center">
+                {isRegistering ? t('auth.alreadyHaveAccount') : t('auth.noAccount')}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegistering(!isRegistering);
+                  setError(null);
+                  setSuccess(null);
+                  setEmail('');
+                  setPassword('');
+                  setConfirmPassword('');
+                }}
+                className="text-teal-700 dark:text-teal-400 font-semibold text-sm hover:underline transition-colors ml-1"
+              >
+                {isRegistering ? t('auth.signIn') : t('auth.createAccount')}
+              </button>
             </div>
           </div>
         </div>
