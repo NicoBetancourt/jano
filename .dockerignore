@@ -1,0 +1,17 @@
+.git
+.gitignore
+*.md
+.env
+.env.local
+.DS_Store
+*.log
+
+# Backend specific
+backend/.venv
+backend/__pycache__
+backend/*.pyc
+backend/.pytest_cache
+
+# Frontend specific
+frontend/node_modules
+frontend/dist

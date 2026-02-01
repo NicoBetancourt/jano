@@ -1,5 +1,5 @@
 # Primera fase: Construcción del entorno virtual con UV
-FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy
 WORKDIR /venv
 
@@ -11,24 +11,30 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev
 
 # Segunda fase: Imagen final sin UV
-FROM python:3.12-slim-bookworm
+FROM python:3.13-slim-bookworm
 
-# Copiar el entorno virtual desde la imagen anterior
-COPY --from=builder --chown=root:root /venv /venv
+# Crear un usuario sin privilegios primero
+RUN useradd -m app_user
+
+# Copiar el entorno virtual y dar permisos al usuario app_user
+COPY --from=builder --chown=app_user:app_user /venv /venv
 
 # Configurar el PATH para usar el entorno virtual
 ENV PATH="/venv/.venv/bin:$PATH"
 WORKDIR /app
 
-# Crear un usuario sin privilegios
-RUN useradd -m app_user
-USER app_user
+# Copiar el código de la aplicación como app_user
+COPY --chown=app_user:app_user . .
 
-# Copiar el código de la aplicación
-COPY . .
+# Copiar y configurar el script de entrada
+COPY --chown=app_user:app_user docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Cambiar a usuario sin privilegios
+USER app_user
 
 ENV PORT=8000
 EXPOSE ${PORT}
 
-# Comando para ejecutar la API
-CMD ["sh", "-c", "uvicorn src.main:app --host 0.0.0.0 --port ${PORT}"]
+# Usar el script de entrada que ejecuta migraciones y luego inicia el servidor
+ENTRYPOINT ["/docker-entrypoint.sh"]

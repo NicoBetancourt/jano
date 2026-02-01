@@ -10,7 +10,7 @@ class Settings(BaseSettings):
 
     # DATABASE
     DATABASE_URL: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/chat_migracion"
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/chat_documentation"
     )
 
     # SECURITY
