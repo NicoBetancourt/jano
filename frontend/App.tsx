@@ -7,6 +7,7 @@ import { authService, UserInfo } from './services/auth';
 import { documentService } from './services/documents';
 import { chatService } from './services/chat';
 import { setOnUnauthorized } from './services/api';
+import { ThemeProvider } from './components/ThemeContext';
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState<AppScreen>(AppScreen.Login);
@@ -107,26 +108,29 @@ export default function App() {
     }
   };
 
-  if (currentScreen === AppScreen.Login) {
-    return <LoginScreen onLogin={() => setCurrentScreen(AppScreen.Workspace)} />;
-  }
-
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden font-sans">
-      <Sidebar
-        sources={sources}
-        onUpload={handleDocumentUploaded}
-        onDeleteSource={handleDeleteSource}
-        currentSessionId={currentSessionId}
-        onSessionSelect={handleSessionSelect}
-      />
-      <ChatArea
-        initialMessages={messages}
-        sessionId={currentSessionId}
-        onSessionChange={setCurrentSessionId}
-        onNewChat={handleNewChat}
-        userEmail={currentUser?.email || ''}
-      />
-    </div>
+    <ThemeProvider>
+      {currentScreen === AppScreen.Login ? (
+        <LoginScreen onLogin={() => setCurrentScreen(AppScreen.Workspace)} />
+      ) : (
+        <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden font-sans transition-colors duration-200">
+          <Sidebar
+            sources={sources}
+            onUpload={handleDocumentUploaded}
+            onDeleteSource={handleDeleteSource}
+            currentSessionId={currentSessionId}
+            onSessionSelect={handleSessionSelect}
+          />
+          <ChatArea
+            initialMessages={messages}
+            sessionId={currentSessionId}
+            onSessionChange={setCurrentSessionId}
+            onNewChat={handleNewChat}
+            userEmail={currentUser?.email || ''}
+            onUpload={handleDocumentUploaded}
+          />
+        </div>
+      )}
+    </ThemeProvider>
   );
 }

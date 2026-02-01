@@ -7,6 +7,8 @@ import rehypeSanitize from 'rehype-sanitize';
 import { Message, MessageRole } from '../types';
 import { chatService } from '../services/chat';
 import { Button } from './Button';
+import { documentService } from '../services/documents';
+import { SourceDocument } from '../types';
 
 interface ChatAreaProps {
   initialMessages: Message[];
@@ -14,14 +16,28 @@ interface ChatAreaProps {
   onSessionChange: (sessionId: string) => void;
   onNewChat: () => void;
   userEmail: string;
+  onUpload?: (doc: SourceDocument) => void;
 }
 
-export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, onSessionChange, onNewChat, userEmail }) => {
+export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, onSessionChange, onNewChat, userEmail, onUpload }) => {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [input, setInput] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file && onUpload) {
+      try {
+        const doc = await documentService.uploadDocument(file);
+        onUpload(doc);
+      } catch (error) {
+        console.error('Upload failed:', error);
+      }
+    }
+  };
 
   const scrollToBottom = (smooth = true) => {
     if (messagesContainerRef.current) {
@@ -105,17 +121,17 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
   };
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white relative">
+    <div className="flex-1 flex flex-col h-full bg-white dark:bg-gray-900 relative transition-colors duration-200">
       {/* Top Bar */}
-      <header className="sticky top-0 z-10 h-16 flex items-center justify-between px-6 border-b border-gray-100 flex-shrink-0 bg-white">
+      <header className="sticky top-0 z-10 h-16 flex items-center justify-between px-6 border-b border-gray-100 dark:border-gray-800 flex-shrink-0 bg-white dark:bg-gray-900 transition-colors">
         <div className="flex items-center gap-3">
-          <h2 className="font-semibold text-gray-800">{sessionId ? 'Chat Session' : 'New Chat Session'}</h2>
-          <span className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[10px] font-bold tracking-wider rounded-md">
+          <h2 className="font-semibold text-gray-800 dark:text-gray-100 transition-colors">{sessionId ? 'Chat Session' : 'New Chat Session'}</h2>
+          <span className="px-2 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 text-[10px] font-bold tracking-wider rounded-md transition-colors">
             ACTIVE LLM: GEMINI 3 FLASH
           </span>
           <button
             onClick={onNewChat}
-            className="ml-2 px-3 py-1 text-xs font-medium text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-md transition-colors"
+            className="ml-2 px-3 py-1 text-xs font-medium text-teal-600 dark:text-teal-400 hover:text-teal-700 dark:hover:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-900/30 rounded-md transition-colors"
           >
             + New Chat
           </button>
@@ -125,7 +141,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
           <Share className="w-5 h-5 text-gray-400 cursor-pointer hover:text-gray-600" />
           <div className="h-4 w-px bg-gray-200"></div>
           <div className="text-right hidden sm:block">
-            <div className="text-sm font-medium text-gray-900">{userEmail || 'User'}</div>
+            <div className="text-sm font-medium text-gray-900 dark:text-gray-100 transition-colors">{userEmail || 'User'}</div>
             <div className="text-xs text-gray-400"></div>
           </div>
           <div className="w-8 h-8 rounded-full bg-teal-500 flex items-center justify-center text-white font-semibold text-sm">
@@ -138,11 +154,11 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
       <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-6 md:p-12 pb-6">
         {messages.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto">
-            <div className="w-16 h-16 bg-teal-50 rounded-2xl flex items-center justify-center mb-6">
-              <Sparkles className="w-8 h-8 text-teal-600" />
+            <div className="w-16 h-16 bg-teal-50 dark:bg-teal-900/30 rounded-2xl flex items-center justify-center mb-6 transition-colors">
+              <Sparkles className="w-8 h-8 text-teal-600 dark:text-teal-400" />
             </div>
-            <h2 className="text-2xl font-semibold text-gray-900 mb-2">Welcome to your Workspace</h2>
-            <p className="text-gray-500">I've analyzed your sources. Ask me anything about the market projections or project notes to get started.</p>
+            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2 transition-colors">Welcome to your Workspace</h2>
+            <p className="text-gray-500 dark:text-gray-400 transition-colors">I've analyzed your sources. Ask me anything about the market projections or project notes to get started.</p>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto space-y-8">
@@ -160,7 +176,9 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
                 <div className={`flex flex-col ${msg.role === MessageRole.User ? 'items-end' : 'items-start'} max-w-[85%]`}>
                   <div className={`
                     text-base leading-relaxed
-                    ${msg.role === MessageRole.User ? 'bg-gray-50 p-4 rounded-2xl text-gray-800' : 'text-gray-800'}
+                    ${msg.role === MessageRole.User
+                      ? 'bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl text-gray-800 dark:text-gray-100 transition-colors'
+                      : 'text-gray-800 dark:text-gray-100 transition-colors'}
                   `}>
                     {msg.role === MessageRole.Model ? (
                       <div className="markdown-content">
@@ -175,14 +193,14 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
                             // Estilo para código inline
                             code: ({ node, inline, ...props }: any) => (
                               inline ? (
-                                <code {...props} className="bg-gray-100 text-teal-700 px-1.5 py-0.5 rounded text-sm font-mono" />
+                                <code {...props} className="bg-gray-100 dark:bg-gray-800 text-teal-700 dark:text-teal-400 px-1.5 py-0.5 rounded text-sm font-mono transition-colors" />
                               ) : (
-                                <code {...props} className="block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-2" />
+                                <code {...props} className="block bg-gray-900 dark:bg-black text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-2 transition-colors" />
                               )
                             ),
                             // Estilo para bloques de código
                             pre: ({ node, ...props }) => (
-                              <pre {...props} className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto my-2" />
+                              <pre {...props} className="bg-gray-900 dark:bg-black text-gray-100 p-4 rounded-lg overflow-x-auto my-2 transition-colors" />
                             ),
                             // Estilo para encabezados
                             h1: ({ node, ...props }) => <h1 {...props} className="text-2xl font-bold mt-4 mb-2" />,
@@ -202,7 +220,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
                             td: ({ node, ...props }) => <td {...props} className="border border-gray-300 px-4 py-2" />,
                             // Estilo para blockquotes
                             blockquote: ({ node, ...props }) => (
-                              <blockquote {...props} className="border-l-4 border-teal-500 pl-4 italic my-2 text-gray-600" />
+                              <blockquote {...props} className="border-l-4 border-teal-500 pl-4 italic my-2 text-gray-600 dark:text-gray-400 transition-colors" />
                             ),
                             // Estilo para párrafos
                             p: ({ node, ...props }) => <p {...props} className="my-2" />,
@@ -220,8 +238,8 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
                   {msg.role === MessageRole.Model && msg.citations && msg.citations.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
                       {msg.citations.map(citation => (
-                        <div key={citation.id} className="flex items-center gap-2 bg-gray-50 px-3 py-1.5 rounded-lg border border-gray-100 text-xs text-gray-600 cursor-pointer hover:bg-gray-100 transition-colors">
-                          <span className="font-bold text-teal-700">{citation.id}</span>
+                        <div key={citation.id} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-gray-700 text-xs text-gray-600 dark:text-gray-300 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-750 transition-colors">
+                          <span className="font-bold text-teal-700 dark:text-teal-400">{citation.id}</span>
                           <span className="truncate max-w-[200px]">{citation.source}</span>
                         </div>
                       ))}
@@ -259,16 +277,26 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
       {/* Sticky Input Area */}
       <div className="absolute bottom-0 left-0 right-0 px-6 md:px-12 pointer-events-none">
         {/* Gradiente de fondo para evitar que el texto se vea detrás */}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-white to-transparent pointer-events-none" style={{ height: '180px' }}></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-white to-transparent dark:from-gray-900 dark:via-gray-900 dark:to-transparent pointer-events-none transition-colors" style={{ height: '180px' }}></div>
         <div className="relative pt-4 pb-5">
-          <div className="max-w-3xl mx-auto pointer-events-auto bg-white rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-gray-100 flex items-center p-1.5 pr-2">
-            <Button variant="icon" className="ml-1.5 text-gray-400 hover:text-teal-600">
+          <div className="max-w-3xl mx-auto pointer-events-auto bg-white dark:bg-gray-800 rounded-[1.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.3)] border border-gray-100 dark:border-gray-700 flex items-center p-1.5 pr-2 transition-colors">
+            <Button
+              variant="icon"
+              className="ml-1.5 text-gray-400 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+              onClick={() => fileInputRef.current?.click()}
+            >
               <Paperclip className="w-4 h-4" />
             </Button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileChange}
+              className="hidden"
+            />
 
             <input
               type="text"
-              className="flex-1 py-2.5 px-3 outline-none text-gray-700 placeholder-gray-400 bg-transparent text-base"
+              className="flex-1 py-2.5 px-3 outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400 bg-transparent text-base transition-colors"
               placeholder="Ask about your documents..."
               value={input}
               onChange={(e) => setInput(e.target.value)}
@@ -292,7 +320,7 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
             </div>
           </div>
           <div className="text-center mt-2 text-[10px] text-gray-400 font-medium tracking-wide">
-            ⌘ + ENTER TO SEND &nbsp; • &nbsp; FOCUS MODE: OFF
+            ⌘ + ENTER TO SEND &nbsp;
           </div>
         </div>
       </div>
