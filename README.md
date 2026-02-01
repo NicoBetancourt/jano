@@ -2,7 +2,7 @@
 
 Bienvenido a **Jano**, una aplicación diseñada para transformar la forma en que interactúas con tus documentos. Carga tus archivos y conversa con ellos utilizando el poder de la Inteligencia Artificial.
 
-![Imagen Principal de la App](AQUÍ_TU_IMAGEN_PRINCIPAL.png)
+<img width="2872" height="1444" alt="image" src="https://github.com/user-attachments/assets/bdec8874-af0f-440d-b201-387ed52f6870" />
 
 ## 🚀 ¿Qué hace esta aplicación?
 
