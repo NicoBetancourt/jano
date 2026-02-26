@@ -1,7 +1,9 @@
 import json
+from typing import AsyncGenerator
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from src.api.dependencies import (
     get_chat_service,
@@ -48,6 +50,44 @@ async def chat_message(
         current_user, request.message, session_id
     )
     return ChatResponse(response=response, session_id=session_id)
+
+
+@router.post("/message/stream")
+async def chat_message_stream(
+    request: ChatRequest,
+    current_user: User = Depends(get_current_active_user),
+    service: ChatService = Depends(get_chat_service),
+):
+    """Stream the agent response using Server-Sent Events (SSE).
+
+    The client should listen to `text/event-stream` and handle:
+    - `data: {"session_id": "..."}` — first event with the session id
+    - `data: <text chunk>` — one event per token/chunk
+    - `data: [DONE]` — signals end of stream
+    """
+    session_id = request.session_id or str(uuid4())
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        # First event: send metadata (session_id) so the client can persist it
+        yield f"data: {json.dumps({'session_id': session_id})}\n\n"
+
+        async for chunk in service.stream_chat_response(
+            current_user, request.message, session_id
+        ):
+            # Escape newlines inside a chunk so the SSE frame stays valid
+            safe_chunk = chunk.replace("\n", "\\n")
+            yield f"data: {safe_chunk}\n\n"
+
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "X-Accel-Buffering": "no",  # Disable Nginx buffering if running behind it
+        },
+    )
 
 
 @router.get("/sessions", response_model=list[SessionResponse])

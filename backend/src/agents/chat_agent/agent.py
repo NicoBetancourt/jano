@@ -45,3 +45,13 @@ class ChatAgent:
 
     async def run(self, prompt: str, deps: ChatDeps, message_history: list = []):
         return await self.agent.run(prompt, deps=deps, message_history=message_history)
+
+    def run_stream(self, prompt: str, deps: ChatDeps, message_history: list = []):
+        """Return the async context manager from agent.run_stream().
+
+        Usage (in a service/route):
+            async with agent.run_stream(prompt, deps=deps, message_history=history) as result:
+                async for chunk in result.stream_text(delta=True):
+                    ...
+        """
+        return self.agent.run_stream(prompt, deps=deps, message_history=message_history)

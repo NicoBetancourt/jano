@@ -29,6 +29,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Cancel any in-flight stream when the component unmounts
+  useEffect(() => () => { abortControllerRef.current?.abort(); }, []);
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -78,7 +82,10 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
   }, [sessionId]);
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    if (!input.trim() || isTyping) return;
+
+    // Cancel any previous in-flight stream
+    abortControllerRef.current?.abort();
 
     const userMsg: Message = {
       id: Date.now().toString(),
@@ -87,33 +94,52 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMsg]);
+    // Placeholder AI message — text will grow chunk by chunk
+    const aiMsgId = (Date.now() + 1).toString();
+    const aiMsgPlaceholder: Message = {
+      id: aiMsgId,
+      role: MessageRole.Model,
+      text: '',
+      citations: [],
+      timestamp: new Date()
+    };
+
+    setMessages(prev => [...prev, userMsg, aiMsgPlaceholder]);
     setInput('');
     setIsTyping(true);
 
-    try {
-      const result = await chatService.sendMessage(userMsg.text, sessionId || undefined);
-
-      // Update session_id if this is a new conversation
-      if (!sessionId && result.session_id) {
-        onSessionChange(result.session_id);
-      }
-
-      const aiMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: MessageRole.Model,
-        text: result.response,
-        citations: [], // Backend doesn't return structured citations yet
-        timestamp: new Date()
-      };
-
-      setMessages(prev => [...prev, aiMsg]);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-      // Optional: Add error message to chat
-    } finally {
-      setIsTyping(false);
-    }
+    abortControllerRef.current = chatService.sendMessageStream(
+      userMsg.text,
+      sessionId || undefined,
+      // onChunk — append delta to the AI message in-place
+      (chunk) => {
+        setIsTyping(false);
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === aiMsgId ? { ...m, text: m.text + chunk } : m
+          )
+        );
+      },
+      // onDone — update session_id if this was a new conversation
+      (resolvedSessionId) => {
+        setIsTyping(false);
+        if (!sessionId && resolvedSessionId) {
+          onSessionChange(resolvedSessionId);
+        }
+      },
+      // onError
+      (err) => {
+        console.error('Stream error:', err);
+        setIsTyping(false);
+        setMessages(prev =>
+          prev.map(m =>
+            m.id === aiMsgId
+              ? { ...m, text: m.text || '⚠️ Error al conectar con el servidor.' }
+              : m
+          )
+        );
+      },
+    );
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -190,54 +216,63 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
                       : 'text-gray-800 dark:text-gray-100 transition-colors'}
                   `}>
                     {msg.role === MessageRole.Model ? (
-                      <div className="markdown-content">
-                        <ReactMarkdown
-                          remarkPlugins={[remarkGfm]}
-                          rehypePlugins={[rehypeRaw, rehypeSanitize]}
-                          components={{
-                            // Estilo para enlaces
-                            a: ({ node, ...props }) => (
-                              <a {...props} className="text-teal-600 hover:text-teal-700 underline" target="_blank" rel="noopener noreferrer" />
-                            ),
-                            // Estilo para código inline
-                            code: ({ node, inline, ...props }: any) => (
-                              inline ? (
-                                <code {...props} className="bg-gray-100 dark:bg-gray-800 text-teal-700 dark:text-teal-400 px-1.5 py-0.5 rounded text-sm font-mono transition-colors" />
-                              ) : (
-                                <code {...props} className="block bg-gray-900 dark:bg-black text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-2 transition-colors" />
-                              )
-                            ),
-                            // Estilo para bloques de código
-                            pre: ({ node, ...props }) => (
-                              <pre {...props} className="bg-gray-900 dark:bg-black text-gray-100 p-4 rounded-lg overflow-x-auto my-2 transition-colors" />
-                            ),
-                            // Estilo para encabezados
-                            h1: ({ node, ...props }) => <h1 {...props} className="text-2xl font-bold mt-4 mb-2" />,
-                            h2: ({ node, ...props }) => <h2 {...props} className="text-xl font-bold mt-3 mb-2" />,
-                            h3: ({ node, ...props }) => <h3 {...props} className="text-lg font-bold mt-2 mb-1" />,
-                            // Estilo para listas
-                            ul: ({ node, ...props }) => <ul {...props} className="list-disc list-inside my-2 space-y-1" />,
-                            ol: ({ node, ...props }) => <ol {...props} className="list-decimal list-inside my-2 space-y-1" />,
-                            li: ({ node, ...props }) => <li {...props} className="ml-4" />,
-                            // Estilo para tablas
-                            table: ({ node, ...props }) => (
-                              <div className="overflow-x-auto my-2">
-                                <table {...props} className="min-w-full border-collapse border border-gray-300" />
-                              </div>
-                            ),
-                            th: ({ node, ...props }) => <th {...props} className="border border-gray-300 bg-gray-100 px-4 py-2 font-semibold" />,
-                            td: ({ node, ...props }) => <td {...props} className="border border-gray-300 px-4 py-2" />,
-                            // Estilo para blockquotes
-                            blockquote: ({ node, ...props }) => (
-                              <blockquote {...props} className="border-l-4 border-teal-500 pl-4 italic my-2 text-gray-600 dark:text-gray-400 transition-colors" />
-                            ),
-                            // Estilo para párrafos
-                            p: ({ node, ...props }) => <p {...props} className="my-2" />,
-                          }}
-                        >
-                          {msg.text}
-                        </ReactMarkdown>
-                      </div>
+                      msg.text === '' && isTyping ? (
+                        // Placeholder mientras llega el primer chunk
+                        <div className="flex items-center gap-1 py-1">
+                          <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                          <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                          <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                        </div>
+                      ) : (
+                        <div className="markdown-content">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            rehypePlugins={[rehypeRaw, rehypeSanitize]}
+                            components={{
+                              // Estilo para enlaces
+                              a: ({ node, ...props }) => (
+                                <a {...props} className="text-teal-600 hover:text-teal-700 underline" target="_blank" rel="noopener noreferrer" />
+                              ),
+                              // Estilo para código inline
+                              code: ({ node, inline, ...props }: any) => (
+                                inline ? (
+                                  <code {...props} className="bg-gray-100 dark:bg-gray-800 text-teal-700 dark:text-teal-400 px-1.5 py-0.5 rounded text-sm font-mono transition-colors" />
+                                ) : (
+                                  <code {...props} className="block bg-gray-900 dark:bg-black text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono my-2 transition-colors" />
+                                )
+                              ),
+                              // Estilo para bloques de código
+                              pre: ({ node, ...props }) => (
+                                <pre {...props} className="bg-gray-900 dark:bg-black text-gray-100 p-4 rounded-lg overflow-x-auto my-2 transition-colors" />
+                              ),
+                              // Estilo para encabezados
+                              h1: ({ node, ...props }) => <h1 {...props} className="text-2xl font-bold mt-4 mb-2" />,
+                              h2: ({ node, ...props }) => <h2 {...props} className="text-xl font-bold mt-3 mb-2" />,
+                              h3: ({ node, ...props }) => <h3 {...props} className="text-lg font-bold mt-2 mb-1" />,
+                              // Estilo para listas
+                              ul: ({ node, ...props }) => <ul {...props} className="list-disc list-inside my-2 space-y-1" />,
+                              ol: ({ node, ...props }) => <ol {...props} className="list-decimal list-inside my-2 space-y-1" />,
+                              li: ({ node, ...props }) => <li {...props} className="ml-4" />,
+                              // Estilo para tablas
+                              table: ({ node, ...props }) => (
+                                <div className="overflow-x-auto my-2">
+                                  <table {...props} className="min-w-full border-collapse border border-gray-300" />
+                                </div>
+                              ),
+                              th: ({ node, ...props }) => <th {...props} className="border border-gray-300 bg-gray-100 px-4 py-2 font-semibold" />,
+                              td: ({ node, ...props }) => <td {...props} className="border border-gray-300 px-4 py-2" />,
+                              // Estilo para blockquotes
+                              blockquote: ({ node, ...props }) => (
+                                <blockquote {...props} className="border-l-4 border-teal-500 pl-4 italic my-2 text-gray-600 dark:text-gray-400 transition-colors" />
+                              ),
+                              // Estilo para párrafos
+                              p: ({ node, ...props }) => <p {...props} className="my-2" />,
+                            }}
+                          >
+                            {msg.text}
+                          </ReactMarkdown>
+                        </div>
+                      )
                     ) : (
                       msg.text
                     )}
@@ -266,18 +301,6 @@ export const ChatArea: React.FC<ChatAreaProps> = ({ initialMessages, sessionId, 
                 )}
               </div>
             ))}
-            {isTyping && (
-              <div className="flex gap-4">
-                <div className="w-8 h-8 bg-teal-600 rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                  <Sparkles className="w-4 h-4 text-white" />
-                </div>
-                <div className="flex items-center gap-1 bg-gray-50 p-4 rounded-2xl">
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                  <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                </div>
-              </div>
-            )}
             <div ref={messagesEndRef} className="h-32" />
           </div>
         )}
