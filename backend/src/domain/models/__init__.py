@@ -1,6 +1,6 @@
 from .document import Document
 from .document_chunk import DocumentChunk
-from .message import Message
+from .message import ConversationSession
 from .user import User
 
-__all__ = ["User", "Document", "DocumentChunk", "Message"]
+__all__ = ["User", "Document", "DocumentChunk", "ConversationSession"]

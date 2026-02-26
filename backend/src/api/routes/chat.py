@@ -1,3 +1,4 @@
+import json
 from uuid import uuid4
 
 from fastapi import APIRouter, Depends
@@ -28,14 +29,11 @@ class SessionResponse(BaseModel):
     session_id: str
     last_message: str
     timestamp: str
-    role: str
 
 
 class MessageResponse(BaseModel):
-    id: int
     role: str
     content: str
-    created_at: str
 
 
 @router.post("/message", response_model=ChatResponse)
@@ -44,7 +42,6 @@ async def chat_message(
     current_user: User = Depends(get_current_active_user),
     service: ChatService = Depends(get_chat_service),
 ):
-    # Generate session_id if not provided
     session_id = request.session_id or str(uuid4())
 
     response = await service.get_chat_response(
@@ -69,17 +66,34 @@ async def get_session_messages(
     current_user: User = Depends(get_current_active_user),
     message_repo: MessageRepository = Depends(get_message_repository),
 ):
-    """Get all messages for a specific session."""
-    messages = await message_repo.get_by_session(current_user.id, session_id)
-    return [
-        MessageResponse(
-            id=msg.id,
-            role=msg.role.value,
-            content=msg.content,
-            created_at=msg.created_at.isoformat(),
-        )
-        for msg in messages
-    ]
+    """Get all messages for a specific session as a flat list of role/content pairs."""
+    raw_json = await message_repo.get_session_messages(current_user.id, session_id)
+    if not raw_json:
+        return []
+
+    try:
+        msgs = json.loads(raw_json)
+    except Exception:
+        return []
+
+    result = []
+    for msg in msgs:
+        kind = msg.get("kind")
+        if kind == "request":
+            for part in msg.get("parts", []):
+                part_kind = part.get("part_kind")
+                if part_kind == "user-prompt":
+                    result.append(
+                        MessageResponse(role="user", content=part.get("content", ""))
+                    )
+        elif kind == "response":
+            for part in msg.get("parts", []):
+                if part.get("part_kind") == "text":
+                    result.append(
+                        MessageResponse(role="model", content=part.get("content", ""))
+                    )
+
+    return result
 
 
 @router.delete("/sessions/{session_id}")

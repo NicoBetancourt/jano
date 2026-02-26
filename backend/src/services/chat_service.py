@@ -1,7 +1,6 @@
-from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
+from pydantic_ai.messages import ModelMessagesTypeAdapter
 from src.agents.chat_agent.agent import ChatAgent
 from src.agents.chat_agent.deps import ChatDeps
-from src.domain.models.message import Message, MessageRole
 from src.domain.models.user import User
 from src.repositories.document_chunk_repository import DocumentChunkRepository
 from src.repositories.document_repository import DocumentRepository
@@ -25,21 +24,15 @@ class ChatService:
         self.doc_repo = doc_repo
 
     async def get_chat_response(self, user: User, content: str, session_id: str) -> str:
-        # 1. Get history from DB for this session
-        history = await self.message_repo.get_by_session(user.id, session_id)
+        # 1. Load stored JSON history from DB (bytes or None)
+        raw_json = await self.message_repo.get_session_messages(user.id, session_id)
 
-        # 2. Convert to Pydantic AI message history format
-        # Note: This is a simplified conversion. Pydantic AI expects specific types.
-        ai_history = []
-        for msg in history:
-            if msg.role == MessageRole.USER:
-                ai_history.append(
-                    ModelRequest(parts=[UserPromptPart(content=msg.content)])
-                )
-            else:
-                ai_history.append(ModelResponse(parts=[TextPart(content=msg.content)]))
+        # 2. Deserialize with pydantic-ai's type adapter
+        ai_history = (
+            ModelMessagesTypeAdapter.validate_json(raw_json) if raw_json else []
+        )
 
-        # 3. Prepare Deps
+        # 3. Prepare agent dependencies
         deps = ChatDeps(
             user=user,
             chunk_repo=self.chunk_repo,
@@ -47,24 +40,12 @@ class ChatService:
             embedding_service=self.embedding_service,
         )
 
-        # 4. Run Agent
+        # 4. Run the agent — history_processor strips old SystemPromptParts automatically
         result = await self.agent.run(content, deps=deps, message_history=ai_history)
 
-        # 5. Save messages to DB with session_id
-        user_msg = Message(
-            user_id=user.id,
-            role=MessageRole.USER,
-            content=content,
-            session_id=session_id,
+        # 5. Persist the full conversation JSON (upsert — replaces previous state)
+        await self.message_repo.upsert_session(
+            user.id, session_id, result.all_messages_json()
         )
-        model_msg = Message(
-            user_id=user.id,
-            role=MessageRole.MODEL,
-            content=result.output,
-            session_id=session_id,
-        )
-
-        await self.message_repo.create(user_msg)
-        await self.message_repo.create(model_msg)
 
         return str(result.output)

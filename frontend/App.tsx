@@ -109,11 +109,12 @@ export default function App() {
       const sessionMessages = await chatService.getSessionMessages(sessionId);
 
       // Convert backend messages to frontend format
-      const formattedMessages: Message[] = sessionMessages.map((msg: any) => ({
-        id: msg.id.toString(),
+      // New API returns {role, content} — no id or created_at per message
+      const formattedMessages: Message[] = sessionMessages.map((msg: any, index: number) => ({
+        id: `${sessionId}-${index}`,
         role: msg.role === 'user' ? MessageRole.User : MessageRole.Model,
         text: msg.content,
-        timestamp: new Date(msg.created_at),
+        timestamp: new Date(),
         citations: [],
       }));
 
