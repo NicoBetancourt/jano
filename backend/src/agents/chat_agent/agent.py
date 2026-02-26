@@ -5,7 +5,7 @@ from src.core.config import settings
 
 from .deps import ChatDeps
 from .prompt import build_system_prompt
-from .tools import retrieve_documents
+from .tools import search_official_document, search_user_documents
 
 
 class ChatAgent:
@@ -15,11 +15,12 @@ class ChatAgent:
             GoogleModel(provider=self.provider, model_name=settings.MODEL_NAME),
             deps_type=ChatDeps,
         )
-        self.agent.tool(retrieve_documents)
+        self.agent.tool(search_official_document)
+        self.agent.tool(search_user_documents)
 
         @self.agent.system_prompt
-        def get_system_prompt(ctx: RunContext[ChatDeps]) -> str:
-            return build_system_prompt(ctx)
+        async def get_system_prompt(ctx: RunContext[ChatDeps]) -> str:
+            return await build_system_prompt(ctx)
 
     async def run(self, prompt: str, deps: ChatDeps, message_history: list = []):
         return await self.agent.run(prompt, deps=deps, message_history=message_history)

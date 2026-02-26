@@ -1,6 +1,5 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
 from src.domain.models.document_chunk import DocumentChunk
 
 
@@ -30,6 +29,33 @@ class DocumentChunkRepository:
         # Using pgvector cosine distance operator <->
         stmt = (
             select(DocumentChunk)
+            .order_by(DocumentChunk.embedding.cosine_distance(embedding))
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def search_similar_by_document_id(
+        self, embedding: list[float], document_id: int, limit: int = 5
+    ) -> list[DocumentChunk]:
+        stmt = (
+            select(DocumentChunk)
+            .where(DocumentChunk.document_id == document_id)
+            .order_by(DocumentChunk.embedding.cosine_distance(embedding))
+            .limit(limit)
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def search_similar_by_user(
+        self, embedding: list[float], user_id: int, limit: int = 5
+    ) -> list[DocumentChunk]:
+        from src.domain.models.document import Document
+
+        stmt = (
+            select(DocumentChunk)
+            .join(Document, DocumentChunk.document_id == Document.id)
+            .where(Document.user_id == user_id, Document.is_official == False)
             .order_by(DocumentChunk.embedding.cosine_distance(embedding))
             .limit(limit)
         )

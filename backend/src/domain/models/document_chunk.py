@@ -1,7 +1,8 @@
-from pgvector.sqlalchemy import Vector
-from sqlalchemy import ForeignKey, String
-from sqlalchemy.orm import Mapped, mapped_column, relationship
+from typing import Optional
 
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import ForeignKey, Integer, String
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from src.core.database import Base
 
 
@@ -14,6 +15,7 @@ class DocumentChunk(Base):
         index=True,
     )
     chunk_index: Mapped[int] = mapped_column()
+    page_number: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     content: Mapped[str] = mapped_column(String)
     embedding: Mapped[Vector] = mapped_column(Vector(2000))
 

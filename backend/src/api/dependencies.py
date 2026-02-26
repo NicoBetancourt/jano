@@ -14,10 +14,10 @@ from src.repositories.message_repository import MessageRepository
 from src.repositories.storage_repository import StorageRepository
 from src.repositories.user_repository import UserRepository
 from src.services.auth_service import AuthService
-from src.services.boe_document_service import BoeDocumentService
 from src.services.chat_service import ChatService
 from src.services.document_service import DocumentService
 from src.services.embedding_service import EmbeddingService
+from src.services.official_document_service import OfficialDocumentService
 from src.services.storage_service import StorageService
 from src.services.user_service import UserService
 
@@ -85,13 +85,15 @@ async def get_document_service(
     return DocumentService(doc_repo, chunk_repo, storage_service, embedding_service)
 
 
-async def get_boe_document_service(
+async def get_official_document_service(
     doc_repo: DocumentRepository = Depends(get_document_repository),
     chunk_repo: DocumentChunkRepository = Depends(get_document_chunk_repository),
     storage_service: StorageService = Depends(get_storage_service),
     embedding_service: EmbeddingService = Depends(get_embedding_service),
-) -> BoeDocumentService:
-    return BoeDocumentService(doc_repo, chunk_repo, storage_service, embedding_service)
+) -> OfficialDocumentService:
+    return OfficialDocumentService(
+        doc_repo, chunk_repo, storage_service, embedding_service
+    )
 
 
 async def get_chat_agent() -> ChatAgent:
@@ -101,10 +103,11 @@ async def get_chat_agent() -> ChatAgent:
 async def get_chat_service(
     message_repo: MessageRepository = Depends(get_message_repository),
     chunk_repo: DocumentChunkRepository = Depends(get_document_chunk_repository),
+    doc_repo: DocumentRepository = Depends(get_document_repository),
     embedding_service: EmbeddingService = Depends(get_embedding_service),
     agent: ChatAgent = Depends(get_chat_agent),
 ) -> ChatService:
-    return ChatService(message_repo, chunk_repo, embedding_service, agent)
+    return ChatService(message_repo, chunk_repo, embedding_service, agent, doc_repo)
 
 
 # Current User

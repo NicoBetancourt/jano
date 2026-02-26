@@ -20,6 +20,6 @@ class Message(Base):
         ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
     session_id: Mapped[str] = mapped_column(String, index=True)
-    role: Mapped[MessageRole] = mapped_column(Enum(MessageRole))
+    role: Mapped[MessageRole] = mapped_column(Enum(MessageRole, native_enum=False))
     content: Mapped[str] = mapped_column(String)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)

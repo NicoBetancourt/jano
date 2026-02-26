@@ -23,6 +23,18 @@ class DocumentRepository:
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 
+    async def list_official(self) -> list[Document]:
+        stmt = select(Document).where(Document.is_official)
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def list_by_user_only(self, user_id: int) -> list[Document]:
+        stmt = select(Document).where(
+            Document.user_id == user_id, Document.is_official == False
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
     async def list_all(self) -> list[Document]:
         stmt = select(Document)
         result = await self.session.execute(stmt)

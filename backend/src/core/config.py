@@ -28,13 +28,16 @@ class Settings(BaseSettings):
 
     # FOLDERS
     S3_DOCS_FOLDER: str = "documents"
-    S3_BOE_FOLDER: str = "boe"
+    S3_OFFICIAL_FOLDER: str = "official_documents"
 
     # AI / RAG
     MODEL_NAME: str = "gemini-3-flash-preview"
     GOOGLE_API_KEY: str = Field(default=...)
     LOGFIRE_TOKEN: Optional[str] = None
-
+    LOGFIRE_SEND: bool = True
+    LOGFIRE_PYDANTIC: bool = True
+    LOGFIRE_FASTAPI: bool = True
+    LOGFIRE_LEVEL: str = "INFO"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 

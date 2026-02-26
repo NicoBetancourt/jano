@@ -2,6 +2,7 @@ from dataclasses import dataclass
 
 from src.domain.models.user import User
 from src.repositories.document_chunk_repository import DocumentChunkRepository
+from src.repositories.document_repository import DocumentRepository
 from src.services.embedding_service import EmbeddingService
 
 
@@ -9,4 +10,5 @@ from src.services.embedding_service import EmbeddingService
 class ChatDeps:
     user: User
     chunk_repo: DocumentChunkRepository
+    doc_repo: DocumentRepository
     embedding_service: EmbeddingService

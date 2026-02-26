@@ -3,6 +3,8 @@ import { API_BASE_URL, getAuthHeaders, handleResponse } from './api';
 
 interface DocumentResponse {
     id: number;
+    user_id?: number | null;
+    is_official?: boolean;
     filename: string;
     size: number;
     content_type: string | null;
@@ -32,7 +34,8 @@ export const documentService = {
             },
         });
         const docs: DocumentResponse[] = await handleResponse(response);
-        return docs.map(mapDocument);
+        // Filter out official/system documents (where user_id is null or undefined)
+        return docs.filter(doc => doc.user_id != null).map(mapDocument);
     },
 
     uploadDocument: async (file: File): Promise<SourceDocument> => {

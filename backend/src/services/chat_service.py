@@ -1,10 +1,10 @@
 from pydantic_ai.messages import ModelRequest, ModelResponse, TextPart, UserPromptPart
-
 from src.agents.chat_agent.agent import ChatAgent
 from src.agents.chat_agent.deps import ChatDeps
 from src.domain.models.message import Message, MessageRole
 from src.domain.models.user import User
 from src.repositories.document_chunk_repository import DocumentChunkRepository
+from src.repositories.document_repository import DocumentRepository
 from src.repositories.message_repository import MessageRepository
 from src.services.embedding_service import EmbeddingService
 
@@ -16,11 +16,13 @@ class ChatService:
         chunk_repo: DocumentChunkRepository,
         embedding_service: EmbeddingService,
         agent: ChatAgent,
+        doc_repo: DocumentRepository,
     ):
         self.message_repo = message_repo
         self.chunk_repo = chunk_repo
         self.embedding_service = embedding_service
         self.agent = agent
+        self.doc_repo = doc_repo
 
     async def get_chat_response(self, user: User, content: str, session_id: str) -> str:
         # 1. Get history from DB for this session
@@ -41,6 +43,7 @@ class ChatService:
         deps = ChatDeps(
             user=user,
             chunk_repo=self.chunk_repo,
+            doc_repo=self.doc_repo,
             embedding_service=self.embedding_service,
         )
 
